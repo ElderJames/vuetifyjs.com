@@ -1,22 +1,17 @@
-<template lang="pug">
-  v-fade-transition(appear)
-    v-app(v-cloak v-if="!examples")
-      app-drawer
-      app-toolbar
-      app-view
-      app-fab
-      app-snackbar
-
-    div(v-else)#app
-      router-view
+<template>
+  <v-fade-transition appear>
+    <documentation v-if="!examples" />
+    <div
+      v-else
+      id="app"
+    >
+      <router-view />
+    </div>
+  </v-fade-transition>
 </template>
 
 <script>
-  import AppDrawer from '@/components/core/AppDrawer'
-  import AppFab from '@/components/core/AppFab'
-  import AppSnackbar from '@/components/core/AppSnackbar'
-  import AppToolbar from '@/components/core/AppToolbar'
-  import AppView from '@/components/core/AppView'
+  import Documentation from '@/components/core/Documentation'
   import Meta from '@/mixins/meta'
 
   import {
@@ -25,14 +20,8 @@
   } from 'vuex'
 
   export default {
-    name: 'Documentation',
-
     components: {
-      AppDrawer,
-      AppFab,
-      AppSnackbar,
-      AppToolbar,
-      AppView
+      Documentation
     },
 
     mixins: [Meta],
@@ -48,16 +37,6 @@
 
     mounted () {
       this.getReleases()
-
-      // this.snackbar({
-      //   color: 'default',
-      //   close: true,
-      //   id: 'subreddit-3-31-giveaway',
-      //   text: 'Go To Reddit',
-      //   msg: 'Vuetify T-shirt giveaway ends 3/31!',
-      //   href: 'https://www.reddit.com/r/vuetifyjs/comments/81qs3f/we_want_to_hear_from_the_community_subscribe/',
-      //   timeout: 0
-      // })
     },
 
     methods: {
@@ -77,12 +56,6 @@
 
 <style lang="stylus">
   @import '~vuetify/src/stylus/settings/_variables.styl'
-
-  [v-cloak]
-    display: none
-
-  .dashme
-    border: 1px dashed black !important
 
   main
     section

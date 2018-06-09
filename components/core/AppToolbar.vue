@@ -13,7 +13,7 @@
       @click="$store.commit('app/DRAWER_TOGGLE')"
       v-show="!stateless && $vuetify.breakpoint.mdAndDown"
     )
-    router-link(:to="{ name: 'Home' }").d-flex.ml-3
+    router-link(:to="{ name: 'home/Home' }").d-flex.ml-3
       img(
         src="/static/v-alt.svg"
         height="38px"
@@ -33,6 +33,7 @@
         v-show="isHome"
         :to="{ name: 'getting-started/QuickStart' }"
       )
+        translatable(:i18n="$vuetify.breakpoint.mdAndUp ? 'Vuetify.AppToolbar.documentation' : 'Vuetify.AppToolbar.docs'")
         span.hidden-md-and-up {{ $t('Vuetify.AppToolbar.docs' )}}
         span.hidden-sm-and-down {{ $t('Vuetify.AppToolbar.documentation' )}}
       v-menu(
@@ -63,7 +64,12 @@
                 :src="`https://countryflags.io/${language.country}/flat/24.png`"
                 width="24px"
               )
-            v-list-tile-title {{language.title}}
+            v-list-tile-title {{language.name}}
+          v-list-tile(
+            v-if="isTranslating"
+            @click="showCreateDialog(true)"
+          )
+            v-list-tile-title New translation
     v-toolbar-items
       v-btn(
         flat
@@ -71,8 +77,9 @@
         v-show="!isStore"
         :to="{ name: 'store/Index' }"
       )
+        translatable(i18n="Vuetify.AppToolbar.store")
         span.hidden-sm-and-down {{ $t('Vuetify.AppToolbar.store' )}}
-        v-icon(:right="$vuetify.breakpoint.mdAndUp") store
+        v-icon.hidden-md-and-up store
 
     v-toolbar-items
       v-menu(
@@ -88,8 +95,10 @@
           slot="activator"
           style="min-width: 64px"
         )
-          span.hidden-sm-and-down {{ $t('Vuetify.AppToolbar.ecosystem' )}}
-          v-icon(:right="$vuetify.breakpoint.mdAndUp") mdi-earth
+          translatable(i18n="Vuetify.AppToolbar.ecosystem").hidden-sm-and-down
+            span.mr-1 {{ $t('Vuetify.AppToolbar.ecosystem' )}}
+          v-icon.hidden-sm-and-down mdi-menu-down
+          v-icon.hidden-md-and-up mdi-earth
         v-list(light)
           v-subheader(light) {{ $t('Vuetify.AppToolbar.quickLinks' )}}
           v-list-tile(
@@ -129,10 +138,11 @@
         v-btn(
           flat
           slot="activator"
-          style="min-width: 64px"
         )
-          span.hidden-sm-and-down {{ $t('Vuetify.AppToolbar.support' )}}
-          v-icon(:right="$vuetify.breakpoint.mdAndUp") mdi-lifebuoy
+          translatable(i18n="Vuetify.AppToolbar.support").hidden-sm-and-down
+            span.mr-1 {{ $t('Vuetify.AppToolbar.support' )}}
+          v-icon.hidden-sm-and-down mdi-menu-down
+          v-icon.hidden-md-and-up mdi-lifebuoy
         v-list(light)
           v-list-tile(
             target="_blank"
@@ -157,8 +167,8 @@
           slot="activator"
           flat
         )
-          span {{ currentVersion }}
-          v-icon(right) keyboard_arrow_down
+          span.mr-1 {{ currentVersion }}
+          v-icon mdi-menu-down
         v-list(light)
           v-list-tile(
             v-for="release in releases"
@@ -184,9 +194,9 @@
 
 <script>
   // Utilities
-  import { mapState } from 'vuex'
+  import { mapState, mapMutations } from 'vuex'
   import asyncData from '@/util/asyncData'
-  import languages from '@/i18n/languages'
+  import languages from '@/data/i18n/languages.json'
 
   export default {
     mixins: [asyncData],
@@ -206,16 +216,20 @@
     }),
 
     computed: {
+      ...mapState('translation', [
+        'isTranslating'
+      ]),
       ...mapState('app', [
         'appToolbar',
         'isFullscreen',
         'releases',
-        'stateless'
+        'stateless',
+        'currentVersion'
       ]),
       ...mapState('store', {
         cart: state => state.checkout
       }),
-      ...mapState(['currentVersion', 'route']),
+      ...mapState(['route']),
       backPath () {
         return this.route.from.path === '/'
           ? { name: 'getting-started/QuickStart' }
@@ -225,7 +239,7 @@
         return this.languages.find(l => l.locale === this.$i18n.locale)
       },
       isHome () {
-        return this.route.name === 'Home'
+        return this.route.name === 'home/Home'
       },
       isManualScrolled () {
         return !this.isHome &&
@@ -237,6 +251,9 @@
     },
 
     methods: {
+      ...mapMutations({
+        showCreateDialog: 'translation/SHOW_CREATE_DIALOG'
+      }),
       changeToRelease (release) {
         // Remove language setting
         const path = this.$route.fullPath.split('/')
